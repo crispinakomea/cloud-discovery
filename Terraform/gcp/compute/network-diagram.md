@@ -24,7 +24,7 @@ flowchart LR
       X_OTEL["Dynatrace OTel Collector Sidecar<br/>otel-collector-dynatrace"]
     end
 
-    subgraph VPC[VPC Access (holiday-planner only)]
+    subgraph VPC["VPC Access - holiday planner only"]
       direction TB
       VPCNET[spoke-1-vpc]
       SUBNET[spoke-1-int-1-2 subnet]
