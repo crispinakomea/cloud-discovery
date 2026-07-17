@@ -13,15 +13,15 @@ flowchart LR
     subgraph CR[Cloud Run Services]
       direction TB
 
-      HP[holiday-planner-app\nIngress: ALL]
-      C[countries-api\nIngress: INTERNAL_ONLY]
-      W[weather-api\nIngress: INTERNAL_ONLY]
-      X[currency-api\nIngress: INTERNAL_ONLY]
+      HP["holiday-planner-app<br/>Ingress: ALL"]
+      C["countries-api<br/>Ingress: INTERNAL_ONLY"]
+      W["weather-api<br/>Ingress: INTERNAL_ONLY"]
+      X["currency-api<br/>Ingress: INTERNAL_ONLY"]
 
-      HP_OTEL[Dynatrace OTel Collector Sidecar\n(otel-collector-dynatrace)]
-      C_OTEL[Dynatrace OTel Collector Sidecar\n(otel-collector-dynatrace)]
-      W_OTEL[Dynatrace OTel Collector Sidecar\n(otel-collector-dynatrace)]
-      X_OTEL[Dynatrace OTel Collector Sidecar\n(otel-collector-dynatrace)]
+      HP_OTEL["Dynatrace OTel Collector Sidecar<br/>otel-collector-dynatrace"]
+      C_OTEL["Dynatrace OTel Collector Sidecar<br/>otel-collector-dynatrace"]
+      W_OTEL["Dynatrace OTel Collector Sidecar<br/>otel-collector-dynatrace"]
+      X_OTEL["Dynatrace OTel Collector Sidecar<br/>otel-collector-dynatrace"]
     end
 
     subgraph VPC[VPC Access (holiday-planner only)]
@@ -30,11 +30,11 @@ flowchart LR
       SUBNET[spoke-1-int-1-2 subnet]
     end
 
-    AR[Artifact Registry\n(eur-78085-acr)]
-    SA[Runtime Service Account\n(Cloud Run runtime SA)]
+    AR["Artifact Registry<br/>eur-78085-acr"]
+    SA["Runtime Service Account<br/>Cloud Run runtime SA"]
   end
 
-  DT[Dynatrace OTLP Endpoint\nhttps://...live.dynatrace.com/api/v2/otlp]
+  DT["Dynatrace OTLP Endpoint<br/>https://...live.dynatrace.com/api/v2/otlp"]
 
   %% User entrypoint
   U -->|HTTPS| HP
@@ -45,10 +45,10 @@ flowchart LR
   HP -->|CURRENCY_API_URL| X
 
   %% Local OTLP from app containers to sidecars
-  HP -->|OTLP gRPC :4317\nlocalhost| HP_OTEL
-  C -->|OTLP gRPC :4317\nlocalhost| C_OTEL
-  W -->|OTLP gRPC :4317\nlocalhost| W_OTEL
-  X -->|OTLP gRPC :4317\nlocalhost| X_OTEL
+  HP -->|OTLP gRPC :4317<br/>localhost| HP_OTEL
+  C -->|OTLP gRPC :4317<br/>localhost| C_OTEL
+  W -->|OTLP gRPC :4317<br/>localhost| W_OTEL
+  X -->|OTLP gRPC :4317<br/>localhost| X_OTEL
 
   %% Sidecar export to Dynatrace
   HP_OTEL -->|OTLP export (DT_ENDPOINT + DT_API_TOKEN)| DT
