@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Holiday Planner</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #f1f5f9;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e3a5f, #0ea5e9);
+      padding: 48px 24px;
+      text-align: center;
+    }
+    header h1 { font-size: 2.8rem; font-weight: 700; letter-spacing: 1px; }
+    header p { margin-top: 10px; font-size: 1.1rem; color: #bae6fd; }
+
+    .section-title {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 40px 0 20px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    #regions-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      padding: 0 32px 48px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .region-card {
+      border-radius: 16px; overflow: hidden;
+      background: #1e293b; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+    }
+    .region-card:hover { transform: translateY(-6px); box-shadow: 0 8px 32px rgba(14,165,233,0.3); }
+    .region-card img { width: 100%; height: 180px; object-fit: cover; }
+    .region-card-body { padding: 16px 20px 20px; }
+    .region-card-body h2 { font-size: 1.3rem; margin-bottom: 12px; }
+    .region-card-body button {
+      width: 100%; padding: 10px; background: #0ea5e9; color: white;
+      border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .region-card-body button:hover { background: #0284c7; }
+
+    #countries-panel { display: none; max-width: 1200px; margin: 0 auto; padding: 0 32px 64px; }
+
+    #back-btn {
+      display: inline-flex; align-items: center; gap: 8px; margin-bottom: 28px;
+      background: #1e293b; border: 1px solid #334155; color: #94a3b8;
+      padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: background 0.2s;
+    }
+    #back-btn:hover { background: #273549; color: #f1f5f9; }
+    #selected-region-title { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+    #countries-subtitle { color: #64748b; margin-bottom: 28px; }
+
+    #countries-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .country-card {
+      background: #1e293b; border-radius: 12px; padding: 16px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px; text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      transition: transform 0.15s, box-shadow 0.15s; cursor: pointer;
+    }
+    .country-card:hover { transform: translateY(-4px); box-shadow: 0 6px 20px rgba(14,165,233,0.2); }
+    .country-card img { width: 72px; height: 48px; object-fit: cover; border-radius: 4px; border: 1px solid #334155; }
+    .country-card .country-name { font-weight: 600; font-size: 0.95rem; }
+    .country-card .country-capital { font-size: 0.8rem; color: #64748b; }
+
+    .loader { text-align: center; padding: 60px; color: #64748b; font-size: 1.1rem; }
+    .spinner {
+      display: inline-block; width: 36px; height: 36px;
+      border: 4px solid #334155; border-top-color: #0ea5e9;
+      border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); z-index: 100;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: #1e293b; border-radius: 20px; max-width: 560px; width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6); overflow: hidden;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .modal-header {
+      position: relative; padding: 28px 28px 20px;
+      border-bottom: 1px solid #334155;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .modal-header img { width: 80px; height: 54px; object-fit: cover; border-radius: 6px; border: 1px solid #334155; }
+    .modal-header .modal-title { font-size: 1.5rem; font-weight: 700; }
+    .modal-header .modal-subtitle { font-size: 0.85rem; color: #64748b; margin-top: 4px; }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px;
+      background: #334155; border: none; color: #94a3b8;
+      width: 32px; height: 32px; border-radius: 50%;
+      font-size: 1.1rem; cursor: pointer; transition: background 0.2s;
+    }
+    .modal-close:hover { background: #475569; color: #f1f5f9; }
+
+    .modal-body { padding: 24px 28px 28px; display: flex; flex-direction: column; gap: 20px; }
+
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .info-card {
+      background: #0f172a; border-radius: 12px; padding: 16px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .info-card .label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+    .info-card .value { font-size: 1.1rem; font-weight: 600; }
+    .info-card .sub { font-size: 0.8rem; color: #94a3b8; }
+    .weather-icon { font-size: 2.5rem; line-height: 1; }
+
+    .section-header { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .loading-detail { color: #64748b; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+    .mini-spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid #334155; border-top-color: #0ea5e9;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+
+    /* Book Now footer */
+    .modal-footer {
+      padding: 0 28px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px;
+    }
+    .days-picker {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .days-picker button {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: #334155; border: none; color: #f1f5f9;
+      font-size: 1.2rem; cursor: pointer; transition: background 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .days-picker button:hover { background: #475569; }
+    .days-picker .days-value { font-size: 1rem; font-weight: 700; min-width: 60px; text-align: center; }
+    .book-btn {
+      flex: 1; padding: 12px 20px; background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      color: white; border: none; border-radius: 10px; font-size: 1rem;
+      font-weight: 700; cursor: pointer; transition: opacity 0.2s;
+    }
+    .book-btn:hover { opacity: 0.88; }
+    .book-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .book-confirm {
+      text-align: center; font-size: 0.85rem; color: #4ade80; padding: 0 28px 16px;
+    }
+    .book-error {
+      text-align: center; font-size: 0.85rem; color: #f87171; padding: 0 28px 16px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌍 Holiday Planner</h1>
+  <p>Where in the world do you want to explore?</p>
+</header>
+
+<div id="regions-view">
+  <p class="section-title">Choose a Region</p>
+  <div id="regions-container">
+    <div class="loader"><div class="spinner"></div><br>Loading regions…</div>
+  </div>
+</div>
+
+<div id="countries-panel">
+  <p class="section-title">Explore Countries</p>
+  <button id="back-btn">&#8592; Back to Regions</button>
+  <h2 id="selected-region-title"></h2>
+  <p id="countries-subtitle"></p>
+  <div id="countries-grid">
+    <div class="loader"><div class="spinner"></div><br>Loading countries…</div>
+  </div>
+</div>
+
+<!-- Country Detail Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <img id="modal-flag" src="" alt="Flag" />
+      <div>
+        <div class="modal-title" id="modal-country-name"></div>
+        <div class="modal-subtitle" id="modal-country-sub"></div>
+      </div>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="section-header">🌤 Current Weather</div>
+        <div id="modal-weather" class="loading-detail"><span class="mini-spinner"></span> Loading weather…</div>
+      </div>
+      <div>
+        <div class="section-header">💷 Exchange Rate (1 GBP)</div>
+        <div id="modal-exchange" class="loading-detail"><span class="mini-spinner"></span> Loading exchange rate…</div>
+      </div>
+    </div>
+    <div id="book-feedback"></div>
+    <div class="modal-footer">
+      <div class="days-picker">
+        <button id="days-minus" title="Fewer days">−</button>
+        <div class="days-value"><span id="days-count">7</span> days</div>
+        <button id="days-plus" title="More days">+</button>
+      </div>
+      <button class="book-btn" id="book-btn">✈️ Book Now</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentBookingData = null;
+  let bookingDays = 7;
+
+  function weatherIcon(code) {
+    if (code === 0)  return { icon: '☀️',  desc: 'Clear sky' };
+    if (code <= 2)   return { icon: '⛅',  desc: 'Partly cloudy' };
+    if (code === 3)  return { icon: '☁️',  desc: 'Overcast' };
+    if (code <= 49)  return { icon: '🌫️', desc: 'Foggy' };
+    if (code <= 59)  return { icon: '🌦️', desc: 'Drizzle' };
+    if (code <= 69)  return { icon: '🌧️', desc: 'Rain' };
+    if (code <= 79)  return { icon: '❄️',  desc: 'Snow' };
+    if (code <= 84)  return { icon: '🌦️', desc: 'Rain showers' };
+    if (code <= 94)  return { icon: '⛈️', desc: 'Thunderstorm' };
+    return { icon: '⛈️', desc: 'Thunderstorm with hail' };
+  }
+
+  async function loadRegions() {
+    const container = document.getElementById('regions-container');
+    const res = await fetch('/api/regions');
+    const regions = await res.json();
+    container.innerHTML = '';
+    regions.forEach(region => {
+      const card = document.createElement('div');
+      card.className = 'region-card';
+      card.innerHTML = `
+        <img src="${region.image}" alt="${region.name}" loading="lazy" />
+        <div class="region-card-body">
+          <h2>${region.name}</h2>
+          <button onclick="selectRegion('${region.name}')">Plan My Holiday →</button>
+        </div>`;
+      container.appendChild(card);
+    });
+  }
+
+  async function selectRegion(region) {
+    document.getElementById('regions-view').style.display = 'none';
+    document.getElementById('countries-panel').style.display = 'block';
+    document.getElementById('selected-region-title').textContent = region;
+    document.getElementById('countries-subtitle').textContent = 'Loading countries…';
+    document.getElementById('countries-grid').innerHTML = '<div class="loader"><div class="spinner"></div><br>Loading countries…</div>';
+
+    const res = await fetch(`/api/countries/${encodeURIComponent(region)}`);
+    const countries = await res.json();
+
+    document.getElementById('countries-subtitle').textContent = `${countries.length} countries — click one to see details`;
+    const grid = document.getElementById('countries-grid');
+    grid.innerHTML = '';
+    countries.forEach(c => {
+      const card = document.createElement('div');
+      card.className = 'country-card';
+      card.innerHTML = `
+        <img src="${c.flag}" alt="Flag of ${c.name}" />
+        <div class="country-name">${c.name}</div>
+        <div class="country-capital">${c.capital && c.capital !== 'N/A' ? '🏙 ' + c.capital : ''}</div>`;
+      card.addEventListener('click', () => openCountryModal(c));
+      grid.appendChild(card);
+    });
+  }
+
+  async function openCountryModal(country) {
+    currentBookingData = null;
+    bookingDays = 7;
+    document.getElementById('days-count').textContent = bookingDays;
+    document.getElementById('book-btn').disabled = true;
+    document.getElementById('book-feedback').innerHTML = '';
+    document.getElementById('modal-flag').src = country.flag || '';
+    document.getElementById('modal-country-name').textContent = country.name;
+    document.getElementById('modal-country-sub').textContent =
+      [country.capital !== 'N/A' ? country.capital : null, country.subregion].filter(Boolean).join(' · ');
+
+    document.getElementById('modal-weather').innerHTML = '<span class="mini-spinner"></span> Loading weather…';
+    document.getElementById('modal-exchange').innerHTML = '<span class="mini-spinner"></span> Loading exchange rate…';
+    document.getElementById('modal-overlay').classList.add('active');
+
+    // Fetch country detail (weather + exchange) from the countries-api
+    // We need lat/lng and currency — fetch full country detail first
+    try {
+      const detailRes = await fetch(`/api/country-name/${encodeURIComponent(country.name)}`);
+      const detail = detailRes.ok ? await detailRes.json() : null;
+      const c = detail && detail.countries && detail.countries[0];
+
+      const params = new URLSearchParams();
+      if (c?.latitude != null) params.append('latitude', c.latitude);
+      if (c?.longitude != null) params.append('longitude', c.longitude);
+      if (c?.currencies?.[0]?.code) params.append('currency', c.currencies[0].code);
+
+      const res = await fetch(`/api/country-detail?${params}`);
+      const data = await res.json();
+
+      // Store for booking
+      currentBookingData = {
+        country: country.name,
+        capital: country.capital,
+        region: document.getElementById('selected-region-title').textContent,
+        flag: country.flag,
+        latitude: c?.latitude,
+        longitude: c?.longitude,
+        currency_code: c?.currencies?.[0]?.code,
+        currency_name: c?.currencies?.[0]?.name,
+        weather: data.weather,
+        exchange: data.exchange,
+      };
+      document.getElementById('book-btn').disabled = false;
+
+      // Weather
+      const w = data.weather;
+      if (w && !w.error) {
+        const { icon, desc } = weatherIcon(w.weathercode ?? 0);
+        document.getElementById('modal-weather').innerHTML = `
+          <div class="info-grid">
+            <div class="info-card">
+              <span class="weather-icon">${icon}</span>
+              <div class="value">${w.temperature}${w.temperature_unit}</div>
+              <div class="sub">${desc}</div>
+            </div>
+            <div class="info-card">
+              <div class="label">Wind speed</div>
+              <div class="value">${w.windspeed} ${w.windspeed_unit}</div>
+              <div class="sub">${(w.time || '').replace('T', ' ')}</div>
+            </div>
+          </div>`;
+      } else {
+        document.getElementById('modal-weather').textContent = w?.error || 'Weather unavailable';
+      }
+
+      // Exchange
+      const ex = data.exchange;
+      if (ex && !ex.error) {
+        document.getElementById('modal-exchange').innerHTML = `
+          <div class="info-card">
+            <div class="label">1 GBP =</div>
+            <div class="value" style="font-size:1.4rem">${ex.converted} ${ex.to}</div>
+            <div class="sub">Rate: ${ex.rate} · ${(ex.last_updated || '').split(' 00:')[0]}</div>
+          </div>`;
+      } else {
+        document.getElementById('modal-exchange').textContent = ex?.error || 'Exchange rate unavailable';
+      }
+
+    } catch (e) {
+      document.getElementById('modal-weather').textContent = 'Failed to load details';
+      document.getElementById('modal-exchange').textContent = 'Failed to load details';
+    }
+  }
+
+  document.getElementById('modal-close').addEventListener('click', () =>
+    document.getElementById('modal-overlay').classList.remove('active'));
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-overlay'))
+      document.getElementById('modal-overlay').classList.remove('active');
+  });
+  document.getElementById('back-btn').addEventListener('click', () => {
+    document.getElementById('countries-panel').style.display = 'none';
+    document.getElementById('regions-view').style.display = 'block';
+  });
+
+  document.getElementById('days-minus').addEventListener('click', () => {
+    if (bookingDays > 1) { bookingDays--; document.getElementById('days-count').textContent = bookingDays; }
+  });
+  document.getElementById('days-plus').addEventListener('click', () => {
+    if (bookingDays < 365) { bookingDays++; document.getElementById('days-count').textContent = bookingDays; }
+  });
+
+  document.getElementById('book-btn').addEventListener('click', async () => {
+    if (!currentBookingData) return;
+    const btn = document.getElementById('book-btn');
+    const feedback = document.getElementById('book-feedback');
+    btn.disabled = true;
+    btn.textContent = 'Booking…';
+    feedback.innerHTML = '';
+    try {
+      const res = await fetch('/api/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...currentBookingData, days: bookingDays })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        feedback.innerHTML = `<div class="book-confirm">✅ Booked! Booking ID: ${data.booking_id}</div>`;
+        btn.textContent = '✈️ Booked!';
+      } else {
+        feedback.innerHTML = `<div class="book-error">❌ ${data.error || 'Booking failed.'}</div>`;
+        btn.disabled = false;
+        btn.textContent = '✈️ Book Now';
+      }
+    } catch (e) {
+      feedback.innerHTML = `<div class="book-error">❌ Network error: ${e.message}</div>`;
+      btn.disabled = false;
+      btn.textContent = '✈️ Book Now';
+    }
+  });
+
+  loadRegions();
+</script>
+</body>
+</html>

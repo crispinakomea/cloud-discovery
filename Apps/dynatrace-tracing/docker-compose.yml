@@ -1,0 +1,64 @@
+services:
+
+  otel-collector:
+    build: ./otel-collector/standard
+    container_name: otel-collector
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    environment:
+      - DYNATRACE_ENDPOINT=${DYNATRACE_ENDPOINT}
+      - DYNATRACE_API_TOKEN=${DYNATRACE_API_TOKEN}
+
+  countries-api:
+    build: ./countries-api/flask
+    container_name: countries-api
+    ports:
+      - "7071:80"
+    environment:
+      - OTEL_SERVICE_NAME=countries-api
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    depends_on:
+      - otel-collector
+
+  currency-api:
+    build: ./currency-api/flask
+    container_name: currency-api
+    ports:
+      - "7072:80"
+    environment:
+      - OTEL_SERVICE_NAME=currency-api
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    depends_on:
+      - otel-collector
+
+  weather-api:
+    build: ./weather-api/flask
+    container_name: weather-api
+    ports:
+      - "7073:80"
+    environment:
+      - OTEL_SERVICE_NAME=weather-api
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    depends_on:
+      - otel-collector
+
+  holiday-planner:
+    build: ./holiday-planner/flask
+    container_name: holiday-planner
+    ports:
+      - "5000:80"
+    environment:
+      - COUNTRIES_API_URL=http://countries-api:80
+      - WEATHER_API_URL=http://weather-api:80
+      - CURRENCY_API_URL=http://currency-api:80
+      - MANAGED_IDENTITY_CLIENT_ID=${MANAGED_IDENTITY_CLIENT_ID}
+      - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME}
+      - AZURE_STORAGE_QUEUE_NAME=${AZURE_STORAGE_QUEUE_NAME}
+      - OTEL_SERVICE_NAME=holiday-planner
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    depends_on:
+      - countries-api
+      - weather-api
+      - currency-api
+      - otel-collector

@@ -1,0 +1,24 @@
+# Ignore everything by default
+*
+
+# Keep this file tracked
+!.gitignore
+
+# Allow only these folders and all their contents
+!Apps/
+!Apps/**
+!Terraform/
+!Terraform/**
+
+# Exclude Azure Terraform stack
+Terraform/azure/
+Terraform/azure/**
+
+# Never commit Terraform local/state artifacts
+Terraform/**/.terraform/
+Terraform/**/*.tfstate
+Terraform/**/*.tfstate.backup
+Terraform/**/*.tfvars
+Terraform/**/*.tfvars.json
+Terraform/**/crash.log
+Terraform/**/crash.*.log

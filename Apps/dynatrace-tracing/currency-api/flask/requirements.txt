@@ -1,0 +1,7 @@
+flask
+gunicorn
+requests
+opentelemetry-sdk
+opentelemetry-exporter-otlp-proto-grpc
+opentelemetry-instrumentation-flask
+opentelemetry-instrumentation-requests

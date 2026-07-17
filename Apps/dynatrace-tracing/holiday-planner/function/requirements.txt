@@ -1,0 +1,9 @@
+flask
+gunicorn
+requests
+azure-storage-queue
+azure-identity
+opentelemetry-sdk
+opentelemetry-exporter-otlp-proto-grpc
+opentelemetry-instrumentation-flask
+opentelemetry-instrumentation-requests
