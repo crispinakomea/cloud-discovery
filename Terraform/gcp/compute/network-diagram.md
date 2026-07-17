@@ -51,10 +51,10 @@ flowchart LR
   X -->|OTLP gRPC :4317<br/>localhost| X_OTEL
 
   %% Sidecar export to Dynatrace
-  HP_OTEL -->|OTLP export (DT_ENDPOINT + DT_API_TOKEN)| DT
-  C_OTEL -->|OTLP export (DT_ENDPOINT + DT_API_TOKEN)| DT
-  W_OTEL -->|OTLP export (DT_ENDPOINT + DT_API_TOKEN)| DT
-  X_OTEL -->|OTLP export (DT_ENDPOINT + DT_API_TOKEN)| DT
+  HP_OTEL -->|OTLP export via DT_ENDPOINT and DT_API_TOKEN| DT
+  C_OTEL -->|OTLP export via DT_ENDPOINT and DT_API_TOKEN| DT
+  W_OTEL -->|OTLP export via DT_ENDPOINT and DT_API_TOKEN| DT
+  X_OTEL -->|OTLP export via DT_ENDPOINT and DT_API_TOKEN| DT
 
   %% Network attachment for holiday-planner
   HP -->|Egress: ALL_TRAFFIC| VPCNET
